@@ -1,16 +1,20 @@
-import { v4 as uuidv4 } from "uuid";
 import { Ok, Err, Result } from "ts-results";
 
 export class TodoItem {
-	private id: string;
+	public readonly id: string;
 	private title: string;
 	private complete: boolean;
 	private priority: number;
 
-	protected constructor(title: string, priority: number) {
-		this.id = uuidv4();
+	protected constructor(
+		id: string,
+		title: string,
+		complete: boolean,
+		priority: number,
+	) {
+		this.id = id;
 		this.title = title;
-		this.complete = false;
+		this.complete = complete;
 		this.priority = priority;
 	}
 
@@ -22,22 +26,39 @@ export class TodoItem {
 		return Ok(this.title);
 	}
 
-	public toggleComplete(): Result<boolean, Error> {
-		this.complete = this.complete ? false : true;
-		return Ok(this.complete);
+	public equalsById(another: TodoItem): boolean {
+		return this.id === another.id ? true : false;
+	}
+
+	public compareTo(another: TodoItem): number {
+		//1 is higher priority
+		if (this.priority < another.priority) {
+			return 1;
+		}
+		if (this.priority > another.priority) {
+			return -1;
+		}
+		return 0;
+	}
+
+	public toggleComplete(): boolean {
+		return this.complete ? false : true;
 	}
 
 	public static create(
+		id: string,
 		title: string,
+		complete: boolean,
 		priority: number,
 	): Result<TodoItem, Error> {
 		if (title === undefined || title === "") {
 			return Err(new Error("Title cannot be undefined"));
 		}
-		if (priority === undefined || priority === null) {
-			return Err(new Error("Priority cannot be undefined"));
-		}
-		const todoItem = new TodoItem(title, priority);
+		const todoItem = new TodoItem(id, title, complete, priority);
 		return Ok(todoItem);
 	}
 }
+
+export const sortByPriority = (item1: TodoItem, item2: TodoItem): number => {
+	return item1.compareTo(item2);
+};
